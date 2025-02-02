@@ -20,7 +20,7 @@ DATA_PATH = BASE_PATH.joinpath("data").resolve()
 
 # Read data
 
-dfbr= pd.read_csv(DATA_PATH.joinpath("agendaporangatufinal.csv"))
+dfbr= pd.read_csv(DATA_PATH.joinpath("agendaporangatu.csv"))
 #----------------------------------------------------------------------------------
 
 listadeESF=dfbr["Nome da ESF"].unique()
@@ -187,7 +187,7 @@ def gerarmapadecalorpaciente(comeco, fim, ESF, tipoAdmissao):
     for ind_y, day in enumerate(y_axis):
         dia_filtrado = filtrado_dfbr[filtrado_dfbr["Dias da semana"] == day]
         for ind_x, x_val in enumerate(x_axis):
-            sum_of_record = dia_filtrado[dia_filtrado["Check-In hora"] == x_val]["Numero de Registros"].sum()
+            sum_of_record = dia_filtrado[dia_filtrado["Check-In hora"] == x_val]["CPF"].sum()
             z[ind_y][ind_x] = sum_of_record
             time_obj=datetime.datetime.strptime(x_val, "%I %p")
             x_val_br=time_obj.strftime("%Hh")
@@ -469,10 +469,10 @@ def criatabeladefiguras(departamento, dfbrfiltrado, categoria, categoriaespectro
         "Hora do Check-In": "first",
         "Check-In hora": "first",
     }
-    #print('\nEsta função foi chamada -> criatabeladefiguras \n')
+   #print('\nEsta função foi chamada -> criatabeladefiguras \n')
     dfbr_por_departamento = dfbrfiltrado[dfbrfiltrado["Departamento"] == departamento].reset_index()
-    agrupado = (dfbr_por_departamento.groupby("Numero do Atendimento").agg(aggregation).reset_index())
-    listadeIdPaciente = agrupado["Numero do Atendimento"]
+    agrupado = (dfbr_por_departamento.groupby("Nome").agg(aggregation).reset_index())
+    listadeIdPaciente = agrupado["Nome"]
 
     x = agrupado[categoria]
     y = list(departamento for _ in range(len(x)))
@@ -590,8 +590,8 @@ app.layout = html.Div(
         Input("selecao-de-data", "end_date"),
         Input("opcao-ESF", "value"),
         Input("menu-admissao", "value"),
-        Input('patient_volume_hm', 'clickData'),
         *[Input(f'btn-{dia}', 'n_clicks') for dia in day_list_pt],
+        Input('patient_volume_hm', 'clickData'),
         Input('reset-btn', 'n_clicks')
     ]
 )
