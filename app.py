@@ -619,59 +619,91 @@ def update_heatmap(start, end, clinic, admit_type, *args):
         return gerarmapadecalorpaciente(start, end, clinic, admit_type)
     elif "btn-" in triggered:
         # Se um botão de dia da semana for clicado
-        #print(f' \n\nFoi em btn triggered {triggered} tipo de triggered {type(triggered)};')
+        print(f' \n\n  triggered {triggered}')
         dia_clicado = triggered.split(".")[0].split("-")[1]
-        day_translation = dict(zip(day_list_pt, day_list))
-        dia_clicado_ing= day_translation.get(dia_clicado)
-
-        dados_filtrados = filtrado_dfbr[(filtrado_dfbr["Dias da semana"] == dia_clicado_ing)]  # Filtra os dados para o dia
-        zfinal = [0,0,0,0,0,0,0,0,0,0,0]
-        for ind_x, x_val in enumerate(x_axis):
-            sum_of_record = dados_filtrados[dados_filtrados["Check-In hora"] == x_val]["Numero de Registros"].sum()
-            zfinal[ind_x] = sum_of_record
-        zfim=[np.array(zfinal)]
-        z = zfim
-        x = horas
-        y = [dia_clicado]
-        titulo = f"Dados para {dia_clicado}"
-
-    elif triggered == 'patient_volume_hm.clickData':
-        # Caso tenha clicado no heatmap
-        #print (f'quem é args???????????????? {args} tipo de args {type(args)}')
-        dia_clicado = args[0]['points'][0]['y']  # Captura o dia da semana clicado
         day_translation = dict(zip(day_list_pt, day_list))
         dia_clicado_ing= day_translation.get(dia_clicado)
         
         dados_filtrados = filtrado_dfbr[(filtrado_dfbr["Dias da semana"] == dia_clicado_ing)] # Filtra os dados para o dia
-        print(f'dados filtradíssimos -> {dados_filtrados}')
+        #print(f'dados filtradíssimos -> {dados_filtrados}')
         zfinal = [0,0,0,0,0,0,0,0,0,0,0]
         for ind_x, x_val in enumerate(x_axis):
-            sum_of_record = dados_filtrados[dados_filtrados["Check-In hora"] == x_val]["Numero de Registros"].sum()
-            zfinal[ind_x] = sum_of_record
+            nomes = dados_filtrados[dados_filtrados["Check-In hora"] == x_val]["CPF"].sum()
+            listanomes = dados_filtrados[dados_filtrados["Check-In hora"] == x_val]["Nome"].astype(str).tolist()
+            zfinal[ind_x] = nomes
+            
+            time_obj=datetime.datetime.strptime(x_val, "%I %p")
+            x_val_br=time_obj.strftime("%Hh")
+            print(f' \n\n  dados_filtrados {dados_filtrados}{type(dados_filtrados)};\n listanomes {listanomes}{type(listanomes)};\n x_val_br {x_val_br};\n')
+            annotation_dict = dict(
+            showarrow=False,
+            text="<br>".join(listanomes),  # Junta os nomes corretamente
+            font=dict(family="sans-serif", size=12, color="black"),
+            x=x_val_br,  # Garante que está no centro da célula
+            y=dia_clicado,  # Mantém a posição correta no eixo Y
+            xref="x1",  # Referência correta para o eixo X
+            yref="y1",  # Referência correta para o eixo Y
+            align="center",  # Centraliza o texto
+        )
+            annotations.append(annotation_dict)
+        #print(f'dados_filtrados  ---------> {dados_filtrados}' )
         zfim=[np.array(zfinal)]
         z = zfim
         x = horas
         y = [dia_clicado]
         titulo = f"Dados para {dia_clicado}"
-        #print(f' \n\nFoi em patien_volume_hm x {x}{type(x)}; \n y {y}{type(y)}; z {z}{type(z)};\n')
+    elif triggered == 'patient_volume_hm.clickData':
+        # Caso tenha clicado no heatmap
+        dia_clicado = args[-2]['points'][0]['y']  # Captura o dia da semana clicado
+        day_translation = dict(zip(day_list_pt, day_list))
+        dia_clicado_ing= day_translation.get(dia_clicado)
+        
+        dados_filtrados = filtrado_dfbr[(filtrado_dfbr["Dias da semana"] == dia_clicado_ing)] # Filtra os dados para o dia
+        #print(f'dados filtradíssimos -> {dados_filtrados}')
+        zfinal = [0,0,0,0,0,0,0,0,0,0,0]
+        for ind_x, x_val in enumerate(x_axis):
+            nomes = dados_filtrados[dados_filtrados["Check-In hora"] == x_val]["CPF"].sum()
+            listanomes = dados_filtrados[dados_filtrados["Check-In hora"] == x_val]["Nome"].astype(str).tolist()
+            zfinal[ind_x] = nomes
+            
+            time_obj=datetime.datetime.strptime(x_val, "%I %p")
+            x_val_br=time_obj.strftime("%Hh")
+            print(f' \n\n  dados_filtrados {dados_filtrados}{type(dados_filtrados)};\n listanomes {listanomes}{type(listanomes)};\n x_val_br {x_val_br};\n')
+            annotation_dict = dict(
+            showarrow=False,
+            text="<br>".join(listanomes),  # Junta os nomes corretamente
+            font=dict(family="sans-serif", size=12, color="black"),
+            x=x_val_br,  # Garante que está no centro da célula
+            y=dia_clicado,  # Mantém a posição correta no eixo Y
+            xref="x1",  # Referência correta para o eixo X
+            yref="y1",  # Referência correta para o eixo Y
+            align="center",  # Centraliza o texto
+        )
+            annotations.append(annotation_dict)
+        zfim=[np.array(zfinal)]
+        z = zfim
+        x = horas
+        y = [dia_clicado]
+        titulo = f"Dados para {dia_clicado}"
+        #print(f' \n\n  annotations {annotations}{type(annotations)};\n nomes {nomes}{type(nomes)};\n')
     else:
         return gerarmapadecalorpaciente(start, end, clinic, admit_type)
 
     # Criação do gráfico
     
     figure = {
-        "data": [{
-            "z": z,
-            "x": x,
-            "y": y,
-            "type": "heatmap",
-            "showscale": "False",
-            "colorscale": "Blues",
-        }],
+       "data": [{
+        "z": z,
+        "x": x,
+        "y": y,
+        "type": "heatmap",
+        "colorscale": "Blues",
+    }],
         "layout": {
             "title": titulo,
             "xaxis": {"title": "Horas", "tickmode": "linear", "dtick": 1},
             "yaxis": {"title": "Dia da Semana"},
+            "annotations": annotations,
             "height": "100%",
         }
     }
