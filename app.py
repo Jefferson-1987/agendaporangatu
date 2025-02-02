@@ -605,8 +605,9 @@ def update_heatmap(start, end, clinic, admit_type, *args):
     ctx = dash.callback_context  # Contexto para verificar qual Input disparou o callback
     triggered = ctx.triggered[0]['prop_id'] if ctx.triggered else None
     horas = ['08h', '09h', '10h', '11h', '12h', '13h', '14h', '15h', '16h', '17h', '18h']
-    #print(f"Triggered by: {triggered}")
-    #print(f"Admit Type: {admit_type}")
+    print(f"Triggered by: {triggered}")
+    print(f"Admit Type: {admit_type}")
+    annotations=[]
     # Verificar se há um input disparado
     if not triggered:
         return gerarmapadecalorpaciente(start, end, clinic, admit_type)
