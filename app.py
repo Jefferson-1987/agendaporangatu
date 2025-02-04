@@ -7,6 +7,7 @@ import pandas as pd
 import datetime
 from datetime import datetime as dt
 import pathlib
+from api_routes import api_blueprint
 
 
 app = dash.Dash(
