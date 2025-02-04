@@ -2,22 +2,17 @@ from flask import Blueprint, request, jsonify, send_from_directory
 import datetime
 import os
 import pandas as pd
-import openai
 from time import sleep
 import json
-from dotenv import load_dotenv, find_dotenv
 import pathlib
-_ = load_dotenv(find_dotenv())
 
-agent_id= "asst_sJZUaJaHdNWUWNx1BZW5MiXc"
-client = openai.Client()
 
 #from app import assistant_workflow
 BASE_PATH = pathlib.Path(__file__).parent.resolve()
 DATA_PATH = BASE_PATH.joinpath("data").resolve()
 # Crie um Blueprint para as rotas da API
 api_blueprint = Blueprint('api_blueprint', __name__)
-arquivo = DATA_PATH.joinpath("agendaporangatu.csv")
+arquivo = DATA_PATH.joinpath("agendaporangatufinal.csv")
 print (f'arquivo {arquivo}')
 def carregar_dados(arquivo):
     if os.path.exists(arquivo):
