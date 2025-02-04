@@ -8,11 +8,12 @@ import datetime
 from datetime import datetime as dt
 import pathlib
 
+
 app = dash.Dash(
     __name__,
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
 )
-
+server = app.server
 
 # Path
 BASE_PATH = pathlib.Path(__file__).parent.resolve()
