@@ -1,183 +1,98 @@
-import csv
+from flask import Blueprint, request, jsonify, send_from_directory
+import datetime
 import os
+import pandas as pd
+import openai
+from time import sleep
+import json
+from dotenv import load_dotenv, find_dotenv
+import pathlib
+_ = load_dotenv(find_dotenv())
 
-# Nome do arquivo CSV
-ARQUIVO_AGENDA = 'agenda.csv'
+agent_id= "asst_sJZUaJaHdNWUWNx1BZW5MiXc"
+client = openai.Client()
 
-# Campos do arquivo CSV
-CAMPOS = ['Ordem', 'Nome', 'CPF', 'Horário', 'Dia', 'Especialidade', 'PostoSaude', 'Setor', 'Status']
+#from app import assistant_workflow
+BASE_PATH = pathlib.Path(__file__).parent.resolve()
+DATA_PATH = BASE_PATH.joinpath("data").resolve()
+# Crie um Blueprint para as rotas da API
+api_blueprint = Blueprint('api_blueprint', __name__)
+arquivo = DATA_PATH.joinpath("agendaporangatu.csv")
+print (f'arquivo {arquivo}')
+def carregar_dados(arquivo):
+    if os.path.exists(arquivo):
+        return pd.read_csv(arquivo)
+    else:
+        colunas = ["Fonte de Admissao", "Tipo de Admissao", "Inicio do Atendimento", "Pontuacao de Cuidado", "Hora do Check-In", "Nome", "Nome da ESF", "Departamento", "Diagnostico Principal", "Data/Hora de Alta", "Numero do Atendimento", "Status do Atendimento", "Numero de Registros", "Tempo de Espera (Min)"]
+        return pd.DataFrame(columns=colunas)
 
+def salvar_dados(df, arquivo):
+    df.to_csv(arquivo, index=False)
 
-def inicializar_arquivo():
-    """Cria o arquivo CSV se não existir ou atualiza o cabeçalho."""
-    if not os.path.exists(ARQUIVO_AGENDA):
-        with open(ARQUIVO_AGENDA, mode='w', newline='', encoding='utf-8') as file:
-            writer = csv.DictWriter(file, fieldnames=CAMPOS)
-            writer.writeheader()
+def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
+    df = carregar_dados(arquivo)
+    novo_agendamento = {
+        "Fonte de Admissao": fonte,
+        "Tipo de Admissao": "Eletiva",
+        "Inicio do Atendimento": inicio,
+        "CPF": 1,
+        "Pontuacao de Cuidado": '-',
+        "Hora do Check-In": inicio,
+        "Nome": nome,
+        "Nome da ESF": ESF,
+        "Departamento": departamento,
+        "Diagnostico Principal": '-',
+        "Data/Hora de Alta": "-",
+        "Status do Atendimento": "Agendado",
+        "Tempo de Espera (Min)": "0"
+    }
+    df = pd.concat([df, pd.DataFrame([novo_agendamento])], ignore_index=True)
+    salvar_dados(df, arquivo)
+    return f"Agendamento incluído na data {inicio} na {ESF}!"
 
+def cancelar_agendamento(arquivo, nome):
+    df = carregar_dados(arquivo)
+    df = df[df["Nome"] != nome]
+    salvar_dados(df, arquivo)
+    return "Agendamento cancelado com sucesso."
 
-def calcular_ordem():
-    """Calcula a ordem para o próximo agendamento."""
-    with open(ARQUIVO_AGENDA, mode='r', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-        linhas = list(reader)
-        return f"{len(linhas) + 1}º"
+def reagendar_atendimento(arquivo, nome, inicio, ESF, departamento):
+    df = carregar_dados(arquivo)
+    nova_hora = input("Nova Hora do Check-In: ")
+    df.loc[df["Nome"] == nome, "Hora do Check-In"] = inicio
+    df.loc[df["Nome"] == nome, "Nome da ESF"] = ESF
+    df.loc[df["Nome"] == nome, "Departamento"] = departamento
+    df.loc[df["Nome"] == nome, "Status do Atendimento"] = "Reagendado"
+    salvar_dados(df, arquivo)
+    return f"Agendamento reagendado para a data {nova_hora} com sucesso!"
+print(incluir_agendamento(arquivo, "Jefferson Peres", "WhatsApp","2025-02-04 2:39:05 PM", "ESF Primavera", "Clínica Geral"))
+@api_blueprint.route('/receber_json', methods=['POST'])
+def receber_json():
+    try:
+        # Recebe o JSON da requisição
+        data = request.get_json()
+        # Extrai os valores do JSON
+        intencao=data.get('intencao')
+        nome = data.get('nome')
+        fonte= "WhatsApp"
+        inicio= data.get('inicio')
+        ESF= data.get('esf')
+        departamento= data.get('departamento')
 
+        if intencao=="agendamento":
+            resposta=incluir_agendamento(nome, fonte, inicio, ESF, departamento)
+        elif intencao=="reagendamento":
+            resposta=incluir_agendamento(nome, fonte, inicio, ESF, departamento)
+        elif intencao=="cancelamento":
+            resposta=cancelar_agendamento(arquivo, nome)
 
-def adicionar_agendamento(nome, cpf, horario, dia, especialidade, posto_saude, setor, status):
-    """Adiciona um novo agendamento ao arquivo CSV."""
-    ordem = calcular_ordem()  # Calcula a ordem de chegada
-    if verificar_conflito(horario, dia, posto_saude):
-        print(f"Conflito: Já existe um agendamento no horário {horario} do dia {dia} no posto {posto_saude}.")
-        return
+        return jsonify({"retorno": f"{resposta}"}), 200
 
-    with open(ARQUIVO_AGENDA, mode='a', newline='', encoding='utf-8') as file:
-        writer = csv.DictWriter(file, fieldnames=CAMPOS)
-        writer.writerow({
-            'Ordem': ordem, 'Nome': nome, 'CPF': cpf, 'Horário': horario, 'Dia': dia,
-            'Especialidade': especialidade, 'PostoSaude': posto_saude, 'Setor': setor, 'Status': status
-        })
-        print(f"Agendamento adicionado com sucesso! Ordem: {ordem}")
+    except Exception as e:
+        return jsonify({"retorno": f"Erro: {str(e)}"}), 500
 
-
-def listar_agendamentos():
-    """Lista todos os agendamentos."""
-    with open(ARQUIVO_AGENDA, mode='r', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-        print("\nAgendamentos:")
-        for linha in reader:
-            print(linha)
-
-
-def verificar_conflito(horario, dia, posto_saude):
-    """Verifica se já existe um agendamento no mesmo horário, dia e posto."""
-    with open(ARQUIVO_AGENDA, mode='r', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-        for linha in reader:
-            if linha['Horário'] == horario and linha['Dia'] == dia and linha['PostoSaude'] == posto_saude:
-                return True
-    return False
-
-
-def filtrar_agendamentos_por_especialidade(especialidade):
-    """Filtra agendamentos por especialidade."""
-    with open(ARQUIVO_AGENDA, mode='r', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-        print(f"\nAgendamentos para a especialidade: {especialidade}")
-        for linha in reader:
-            if linha['Especialidade'] == especialidade:
-                print(linha)
-
-
-def filtrar_agendamentos_por_posto(posto_saude):
-    """Filtra agendamentos por posto de saúde."""
-    with open(ARQUIVO_AGENDA, mode='r', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-        print(f"\nAgendamentos para o posto de saúde: {posto_saude}")
-        for linha in reader:
-            if linha['PostoSaude'] == posto_saude:
-                print(linha)
-
-
-def remover_agendamento(cpf, horario, dia):
-    """Remove um agendamento específico."""
-    agendamentos = []
-    with open(ARQUIVO_AGENDA, mode='r', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-        for linha in reader:
-            if not (linha['CPF'] == cpf and linha['Horário'] == horario and linha['Dia'] == dia):
-                agendamentos.append(linha)
-
-    with open(ARQUIVO_AGENDA, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.DictWriter(file, fieldnames=CAMPOS)
-        writer.writeheader()
-        writer.writerows(agendamentos)
-
-    print("Agendamento removido com sucesso!")
-
-
-def editar_agendamento(cpf, horario, dia, novos_dados):
-    """Edita um agendamento existente."""
-    agendamentos = []
-    agendamento_encontrado = False
-    with open(ARQUIVO_AGENDA, mode='r', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-        for linha in reader:
-            if linha['CPF'] == cpf and linha['Horário'] == horario and linha['Dia'] == dia:
-                novos_dados['Ordem'] = linha['Ordem']  # Mantém a mesma ordem
-                agendamentos.append(novos_dados)
-                agendamento_encontrado = True
-            else:
-                agendamentos.append(linha)
-
-    if not agendamento_encontrado:
-        print("Agendamento não encontrado.")
-        return
-
-    with open(ARQUIVO_AGENDA, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.DictWriter(file, fieldnames=CAMPOS)
-        writer.writeheader()
-        writer.writerows(agendamentos)
-
-    print("Agendamento editado com sucesso!")
-
-
-# Inicialização do sistema
-if __name__ == "__main__":
-    inicializar_arquivo()
-
-    while True:
-        print("\nMenu:")
-        print("1. Adicionar agendamento")
-        print("2. Listar agendamentos")
-        print("3. Filtrar por especialidade")
-        print("4. Filtrar por posto de saúde")
-        print("5. Remover agendamento")
-        print("6. Editar agendamento")
-        print("7. Sair")
-
-        escolha = input("Escolha uma opção: ")
-
-        if escolha == '1':
-            nome = input("Digite o nome: ")
-            cpf = input("Digite o CPF: ")
-            horario = input("Digite o horário (HH:MM): ")
-            dia = input("Digite o dia (DD/MM/AAAA): ")
-            especialidade = input("Digite a especialidade: ")
-            posto_saude = input("Digite o posto de saúde: ")
-            setor = input("Digite o setor: ")
-            status = input("Digite o status do agendamento (Confirmado/Pendente/Cancelado): ")
-            adicionar_agendamento(nome, cpf, horario, dia, especialidade, posto_saude, setor, status)
-        elif escolha == '2':
-            listar_agendamentos()
-        elif escolha == '3':
-            especialidade = input("Digite a especialidade para filtrar: ")
-            filtrar_agendamentos_por_especialidade(especialidade)
-        elif escolha == '4':
-            posto_saude = input("Digite o posto de saúde para filtrar: ")
-            filtrar_agendamentos_por_posto(posto_saude)
-        elif escolha == '5':
-            cpf = input("Digite o CPF do agendamento a ser removido: ")
-            horario = input("Digite o horário do agendamento: ")
-            dia = input("Digite o dia do agendamento: ")
-            remover_agendamento(cpf, horario, dia)
-        elif escolha == '6':
-            cpf = input("Digite o CPF do agendamento a ser editado: ")
-            horario = input("Digite o horário do agendamento: ")
-            dia = input("Digite o dia do agendamento: ")
-            novos_dados = {
-                'Nome': input("Digite o novo nome: "),
-                'CPF': cpf,
-                'Horário': input("Digite o novo horário (HH:MM): "),
-                'Dia': input("Digite o novo dia (DD/MM/AAAA): "),
-                'Especialidade': input("Digite a nova especialidade: "),
-                'PostoSaude': input("Digite o novo posto de saúde: "),
-                'Setor': input("Digite o novo setor: "),
-                'Status': input("Digite o novo status do agendamento (Confirmado/Pendente/Cancelado): ")
-            }
-            editar_agendamento(cpf, horario, dia, novos_dados)
-        elif escolha == '7':
-            print("Saindo...")
-            break
-        else:
-            print("Opção inválida!")
+@api_blueprint.route('/json/horariosdesejados.json', methods=['GET'])
+def get_json(filename='horariosdesejados.json'):
+    current_directory = os.getcwd()  # Diretório atual
+    filename = 'horariosdesejados.json'  # Nome do arquivo
+    return send_from_directory(directory=current_directory, path='./horariosdesejados.json')
