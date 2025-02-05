@@ -5,7 +5,7 @@ from dash.dependencies import Input, Output, ClientsideFunction
 import numpy as np
 import pandas as pd
 import datetime
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta 
 import pathlib
 from api_routes import api_blueprint
 
@@ -33,6 +33,7 @@ listadeAdmissao = dfbr["Fonte de Admissao"].unique().tolist()
 # Date
 # Format checkin Time
  # String -> Datetime
+hoje = dt.today()
 
 dfbr["Hora do Check-In"] = dfbr["Hora do Check-In"].apply(
     lambda x: dt.strptime(x, "%d/%m/%Y %I:%M:%S %p")
@@ -133,11 +134,12 @@ def gerarcontroledosgraficos():
             html.P("Selecione a hora de entrada"),
             dcc.DatePickerRange(
                 id="selecao-de-data",
-                start_date=dt(2025, 2, 1),
-                end_date=dt(2025, 2, 15),
-                min_date_allowed=dt(2014, 1, 1),
+                start_date=hoje,  # Data de hoje
+                end_date=hoje + timedelta(days=15),
+                min_date_allowed=dt(2025, 1, 1),
                 max_date_allowed=dt(2025, 12, 31),
-                initial_visible_month=dt(2025, 1, 1),
+                initial_visible_month=hoje,
+                display_format="DD/MM/YYYY",
             ),
             html.Br(),
             html.Br(),
