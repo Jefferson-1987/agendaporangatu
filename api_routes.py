@@ -60,7 +60,7 @@ def reagendar_atendimento(arquivo, nome, inicio, ESF, departamento):
     df.loc[df["Nome"] == nome, "Status do Atendimento"] = "Reagendado"
     salvar_dados(df, arquivo)
     return f"Agendamento reagendado para a data {nova_hora} com sucesso!"
-print(incluir_agendamento(arquivo, "Jefferson Peres", "WhatsApp","2025-02-04 2:39:05 PM", "ESF Primavera", "Clínica Geral"))
+#print(incluir_agendamento(arquivo, "Jefferson Peres", "WhatsApp","2025-02-04 2:39:05 PM", "ESF Primavera", "Clínica Geral"))
 @api_blueprint.route('/receber_json', methods=['POST'])
 def receber_json():
     try:
