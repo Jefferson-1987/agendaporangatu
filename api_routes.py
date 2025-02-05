@@ -12,7 +12,7 @@ BASE_PATH = pathlib.Path(__file__).parent.resolve()
 DATA_PATH = BASE_PATH.joinpath("data").resolve()
 # Crie um Blueprint para as rotas da API
 api_blueprint = Blueprint('api_blueprint', __name__)
-arquivo = DATA_PATH.joinpath("agendaporangatufinal.csv")
+arquivo = DATA_PATH.joinpath("agendaporangatu.csv")
 print (f'arquivo {arquivo}')
 def carregar_dados(arquivo):
     if os.path.exists(arquivo):
