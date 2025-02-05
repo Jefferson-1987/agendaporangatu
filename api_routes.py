@@ -75,9 +75,9 @@ def receber_json():
         departamento= data.get('departamento')
 
         if intencao=="agendamento":
-            resposta=incluir_agendamento(nome, fonte, inicio, ESF, "Clínica Geral")
+            resposta=incluir_agendamento(arquivo, nome, fonte, inicio, ESF, "Clínica Geral")
         elif intencao=="reagendamento":
-            resposta=incluir_agendamento(nome, fonte, inicio, ESF, "Clínica Geral")
+            resposta=incluir_agendamento(arquivo, nome, fonte, inicio, ESF, "Clínica Geral")
         elif intencao=="cancelamento":
             resposta=cancelar_agendamento(arquivo, nome)
 
