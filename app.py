@@ -133,10 +133,10 @@ def gerarcontroledosgraficos():
             html.P("Selecione a hora de entrada"),
             dcc.DatePickerRange(
                 id="selecao-de-data",
-                start_date=dt(2014, 1, 1),
-                end_date=dt(2014, 1, 15),
+                start_date=dt(2025, 1, 1),
+                end_date=dt(2025, 1, 15),
                 min_date_allowed=dt(2014, 1, 1),
-                max_date_allowed=dt(2014, 12, 31),
+                max_date_allowed=dt(2025, 12, 31),
                 initial_visible_month=dt(2014, 1, 1),
             ),
             html.Br(),
