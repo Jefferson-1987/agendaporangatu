@@ -136,7 +136,7 @@ def gerarcontroledosgraficos():
                 id="selecao-de-data",
                 start_date=hoje,  # Data de hoje
                 end_date=hoje + timedelta(days=15),
-                min_date_allowed=dt(2025, 1, 1),
+                min_date_allowed=dt(2014, 1, 1),
                 max_date_allowed=dt(2025, 12, 31),
                 initial_visible_month=hoje,
                 display_format="DD/MM/YYYY",
