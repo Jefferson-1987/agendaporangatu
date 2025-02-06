@@ -72,7 +72,6 @@ def receber_json():
         fonte= "WhatsApp"
         inicio= data.get('inicio')
         ESF= data.get('esf')
-        departamento= data.get('departamento')
 
         if intencao=="agendamento":
             resposta=incluir_agendamento(arquivo,nome, fonte, inicio, ESF, "Clínica Geral")
