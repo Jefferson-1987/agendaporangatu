@@ -1,10 +1,39 @@
 from flask import Blueprint, request, jsonify, send_from_directory
 import datetime
+from google.cloud import storage
 import os
 import pandas as pd
 from time import sleep
 import json
 import pathlib
+
+
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'agendaporangatu-de95d1b25e78.json'
+
+# define function that uploads a file from the bucket
+def upload_cs_file(bucket_name, source_file_name, destination_file_name): 
+    storage_client = storage.Client()
+
+    bucket = storage_client.bucket(bucket_name)
+
+    blob = bucket.blob(destination_file_name)
+    blob.upload_from_filename(source_file_name)
+
+    return True
+
+
+
+
+def download_cs_file(bucket_name, file_name, destination_file_name): 
+    storage_client = storage.Client()
+
+    bucket = storage_client.bucket(bucket_name)
+
+    blob = bucket.blob(file_name)
+    blob.download_to_filename(destination_file_name)
+
+    return True
 
 
 #from app import assistant_workflow
@@ -25,6 +54,7 @@ def salvar_dados(df, arquivo):
     df.to_csv(arquivo, index=False)
 
 def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
+    download_cs_file('dashporangatu', 'agendaporangatu.csv', 'data/agendaporangatu.csv')
     df = carregar_dados(arquivo)
     novo_agendamento = {
         "Fonte de Admissao": fonte,
@@ -43,6 +73,7 @@ def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
     }
     df = pd.concat([df, pd.DataFrame([novo_agendamento])], ignore_index=True)
     salvar_dados(df, arquivo)
+    upload_cs_file('dashporangatu', 'data/agendaporangatu.csv', 'agendaporangatu.csv')
     return f"Agendamento incluído na data {inicio} na {ESF}!"
 
 def cancelar_agendamento(arquivo, nome):
@@ -60,7 +91,7 @@ def reagendar_atendimento(arquivo, nome, inicio, ESF, departamento):
     df.loc[df["Nome"] == nome, "Status do Atendimento"] = "Reagendado"
     salvar_dados(df, arquivo)
     return f"Agendamento reagendado para a data {nova_hora} com sucesso!"
-#incluir_agendamento(arquivo, "Jefferson Peres", "WhatsApp","07/02/2025 2:39:05 PM", "ESF Vila Primavera", "Clínica Geral")
+incluir_agendamento(arquivo, "Jefferson Peres", "WhatsApp","07/02/2025 2:39:05 PM", "ESF Vila Primavera", "Clínica Geral")
 @api_blueprint.route('/receber_json', methods=['POST'])
 def receber_json():
     try:
@@ -72,11 +103,12 @@ def receber_json():
         fonte= "WhatsApp"
         inicio= data.get('inicio')
         ESF= data.get('esf')
+        departamento= data.get('departamento')
 
         if intencao=="agendamento":
-            resposta=incluir_agendamento(arquivo,nome, fonte, inicio, ESF, "Clínica Geral")
+            resposta=incluir_agendamento(nome, fonte, inicio, ESF, departamento)
         elif intencao=="reagendamento":
-            resposta=reagendar_atendimento(arquivo,nome, fonte, inicio, ESF, "Clínica Geral")
+            resposta=incluir_agendamento(nome, fonte, inicio, ESF, departamento)
         elif intencao=="cancelamento":
             resposta=cancelar_agendamento(arquivo, nome)
 
