@@ -854,4 +854,4 @@ def update_table(start, end, clinic, admit_type, heatmap_click, *args):
 
 # Run the server
 if __name__ == "__main__":
-    app.run_server(debug=True, port=8050, host="0.0.0.0")
+    app.run_server(debug=False, port=8080, host="0.0.0.0")
