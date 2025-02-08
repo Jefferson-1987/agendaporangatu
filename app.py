@@ -9,13 +9,13 @@ from datetime import datetime as dt, timedelta
 import pathlib
 from api_routes import api_blueprint
 
-
 app = dash.Dash(
     __name__,
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
 )
 server = app.server
 server.register_blueprint(api_blueprint, url_prefix='/api')
+hoje = dt.today()
 # Path
 BASE_PATH = pathlib.Path(__file__).parent.resolve()
 DATA_PATH = BASE_PATH.joinpath("data").resolve()
@@ -33,7 +33,6 @@ listadeAdmissao = dfbr["Fonte de Admissao"].unique().tolist()
 # Date
 # Format checkin Time
  # String -> Datetime
-hoje = dt.today()
 
 dfbr["Hora do Check-In"] = dfbr["Hora do Check-In"].apply(
     lambda x: dt.strptime(x, "%d/%m/%Y %I:%M:%S %p")
@@ -473,7 +472,7 @@ def criatabeladefiguras(departamento, dfbrfiltrado, categoria, categoriaespectro
         "Hora do Check-In": "first",
         "Check-In hora": "first",
     }
-   #print('\nEsta função foi chamada -> criatabeladefiguras \n')
+    #print('\nEsta função foi chamada -> criatabeladefiguras \n')
     dfbr_por_departamento = dfbrfiltrado[dfbrfiltrado["Departamento"] == departamento].reset_index()
     agrupado = (dfbr_por_departamento.groupby("Nome").agg(aggregation).reset_index())
     listadeIdPaciente = agrupado["Nome"]
@@ -594,8 +593,8 @@ app.layout = html.Div(
         Input("selecao-de-data", "end_date"),
         Input("opcao-ESF", "value"),
         Input("menu-admissao", "value"),
-        *[Input(f'btn-{dia}', 'n_clicks') for dia in day_list_pt],
         Input('patient_volume_hm', 'clickData'),
+        *[Input(f'btn-{dia}', 'n_clicks') for dia in day_list_pt],
         Input('reset-btn', 'n_clicks')
     ]
 )
@@ -610,7 +609,7 @@ def update_heatmap(start, end, clinic, admit_type, *args):
     triggered = ctx.triggered[0]['prop_id'] if ctx.triggered else None
     horas = ['08h', '09h', '10h', '11h', '12h', '13h', '14h', '15h', '16h', '17h', '18h']
     print(f"Triggered by: {triggered}")
-    print(f"Admit Type: {admit_type}")
+    print(f"args: {args}")
     annotations=[]
     # Verificar se há um input disparado
     if not triggered:
@@ -659,7 +658,8 @@ def update_heatmap(start, end, clinic, admit_type, *args):
         titulo = f"Dados para {dia_clicado}"
     elif triggered == 'patient_volume_hm.clickData':
         # Caso tenha clicado no heatmap
-        dia_clicado = args[-2]['points'][0]['y']  # Captura o dia da semana clicado
+        print(f'{args} args {type(args)} <----------------------------------------------> triggered {triggered}')
+        dia_clicado = args[0]['points'][0]['y']  # Captura o dia da semana clicado
         day_translation = dict(zip(day_list_pt, day_list))
         dia_clicado_ing= day_translation.get(dia_clicado)
         
@@ -780,7 +780,7 @@ def update_table(start, end, clinic, admit_type, heatmap_click, *args):
         dia_clicado_ing= day_translation.get(dia_clicado)
         dados_filtrados = filtrado_dfbr[(filtrado_dfbr["Dias da semana"] == dia_clicado_ing)] # Filtra os dados para o dia
         departamentos = dados_filtrados["Departamento"].unique()
-        print(f"\ndepartamentos: {departamentos}\dados_filtrados: {dados_filtrados}")
+        print(f"\ndepartamentos: {departamentos} dados_filtrados: {dados_filtrados}")
 
     if "btn-" in triggered:
         # Se um botão de dia da semana for clicado
@@ -854,4 +854,4 @@ def update_table(start, end, clinic, admit_type, heatmap_click, *args):
 
 # Run the server
 if __name__ == "__main__":
-    app.run_server(debug=False, port=8080, host="0.0.0.0")
+    app.run_server(debug=True, port=8050, host="0.0.0.0")
