@@ -9,10 +9,10 @@ import pathlib
 from dotenv import load_dotenv
 
 # Carregar variáveis do .env
-load_dotenv()
+#load_dotenv()
 
 # Pegar o JSON codificado
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+#os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
 
 # define function that uploads a file from the bucket
@@ -58,7 +58,7 @@ def salvar_dados(df, arquivo):
     df.to_csv(arquivo, index=False)
 
 def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
-    download_cs_file('dashporangatu', 'agendaporangatu.csv', 'data/agendaporangatu.csv')
+    #download_cs_file('dashporangatu', 'agendaporangatu.csv', 'data/agendaporangatu.csv')
     df = carregar_dados(arquivo)
     novo_agendamento = {
         "Fonte de Admissao": fonte,
@@ -77,15 +77,15 @@ def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
     }
     df = pd.concat([df, pd.DataFrame([novo_agendamento])], ignore_index=True)
     salvar_dados(df, arquivo)
-    upload_cs_file('dashporangatu', 'data/agendaporangatu.csv', 'agendaporangatu.csv')
+    #upload_cs_file('dashporangatu', 'data/agendaporangatu.csv', 'agendaporangatu.csv')
     return f"Agendamento incluído na data {inicio} na {ESF}!"
 
 def cancelar_agendamento(arquivo, nome):
-    download_cs_file('dashporangatu', 'agendaporangatu.csv', 'data/agendaporangatu.csv')
+    #download_cs_file('dashporangatu', 'agendaporangatu.csv', 'data/agendaporangatu.csv')
     df = carregar_dados(arquivo)
     df = df[df["Nome"] != nome]
     salvar_dados(df, arquivo)
-    upload_cs_file('dashporangatu', 'data/agendaporangatu.csv', 'agendaporangatu.csv')
+    #upload_cs_file('dashporangatu', 'data/agendaporangatu.csv', 'agendaporangatu.csv')
     return "Agendamento cancelado com sucesso."
 
 def reagendar_atendimento(arquivo, nome, inicio, ESF, departamento):
