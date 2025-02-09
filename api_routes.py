@@ -6,10 +6,14 @@ import pandas as pd
 from time import sleep
 import json
 import pathlib
+from dotenv import load_dotenv
 
+# Carregar variáveis do .env
+load_dotenv()
 
+# Pegar o JSON codificado
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'agendaporangatu-de95d1b25e78.json'
 
 # define function that uploads a file from the bucket
 def upload_cs_file(bucket_name, source_file_name, destination_file_name): 
@@ -17,11 +21,11 @@ def upload_cs_file(bucket_name, source_file_name, destination_file_name):
 
     bucket = storage_client.bucket(bucket_name)
 
-    blob = bucket.blob(destination_file_name)
+    blob = bucket.blob(destination_file_name)                                                 
     blob.upload_from_filename(source_file_name)
 
     return True
-
+#upload_cs_file('dashporangatu', 'data/agendaporangatu.csv', 'agendaporangatu.csv')
 
 
 
@@ -77,12 +81,15 @@ def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
     return f"Agendamento incluído na data {inicio} na {ESF}!"
 
 def cancelar_agendamento(arquivo, nome):
+    download_cs_file('dashporangatu', 'agendaporangatu.csv', 'data/agendaporangatu.csv')
     df = carregar_dados(arquivo)
     df = df[df["Nome"] != nome]
     salvar_dados(df, arquivo)
+    upload_cs_file('dashporangatu', 'data/agendaporangatu.csv', 'agendaporangatu.csv')
     return "Agendamento cancelado com sucesso."
 
 def reagendar_atendimento(arquivo, nome, inicio, ESF, departamento):
+    download_cs_file('dashporangatu', 'agendaporangatu.csv', 'data/agendaporangatu.csv')
     df = carregar_dados(arquivo)
     nova_hora = input("Nova Hora do Check-In: ")
     df.loc[df["Nome"] == nome, "Hora do Check-In"] = inicio
@@ -90,8 +97,9 @@ def reagendar_atendimento(arquivo, nome, inicio, ESF, departamento):
     df.loc[df["Nome"] == nome, "Departamento"] = departamento
     df.loc[df["Nome"] == nome, "Status do Atendimento"] = "Reagendado"
     salvar_dados(df, arquivo)
+    upload_cs_file('dashporangatu', 'data/agendaporangatu.csv', 'agendaporangatu.csv')
     return f"Agendamento reagendado para a data {nova_hora} com sucesso!"
-incluir_agendamento(arquivo, "Jefferson Peres", "WhatsApp","07/02/2025 2:39:05 PM", "ESF Vila Primavera", "Clínica Geral")
+#incluir_agendamento(arquivo, "Jefferson Peres", "WhatsApp","07/02/2025 2:39:05 PM", "ESF Vila Primavera", "Clínica Geral")
 @api_blueprint.route('/receber_json', methods=['POST'])
 def receber_json():
     try:
