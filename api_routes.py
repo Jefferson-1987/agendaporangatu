@@ -9,7 +9,6 @@ import pathlib
 from dotenv import load_dotenv
 
 client = storage.Client()
-
 # Nome do bucket
 bucket_name = "dashporangatu"
 bucket = client.bucket(bucket_name)
