@@ -5,6 +5,7 @@ from dash.dependencies import Input, Output, ClientsideFunction
 import numpy as np
 import pandas as pd
 import datetime
+from google.cloud import storage
 from datetime import datetime as dt, timedelta 
 import pathlib
 from api_routes import api_blueprint
@@ -18,9 +19,27 @@ hoje = dt.today()
 # Path
 BASE_PATH = pathlib.Path(__file__).parent.resolve()
 DATA_PATH = BASE_PATH.joinpath("data").resolve()
+client = storage.Client()
+# Nome do bucket
+bucket_name = "dashporangatu"
+bucket = client.bucket(bucket_name)
 
+
+# define function that uploads a file from the bucket
+def enviar_arquivo():
+    blob = bucket.blob("agendaporangatu.csv")
+    blob.upload_from_filename("data/agendaporangatu.csv")
+    print("Arquivo enviado com sucesso!")
+#upload_cs_file('dashporangatu', 'data/agendaporangatu.csv', 'agendaporangatu.csv')
+
+def baixar_arquivo():
+    blob = bucket.blob("agendaporangatu.csv")
+    blob.download_to_filename("data/agendaporangatu.csv")
+    print("Arquivo baixado com sucesso!")
+
+    return True
 # Read data
-
+def baixar_arquivo()
 dfbr= pd.read_csv(DATA_PATH.joinpath("agendaporangatu.csv"))
 #----------------------------------------------------------------------------------
 
