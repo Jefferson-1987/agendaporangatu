@@ -47,7 +47,7 @@ def salvar_dados(df, arquivo):
 
 def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
     baixar_arquivo()
-    df = baixar_arquivo()
+    df = carregar_dados(arquivo)
     novo_agendamento = {
         "Fonte de Admissao": fonte,
         "Tipo de Admissao": "Eletiva",
