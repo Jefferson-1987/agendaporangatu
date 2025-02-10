@@ -39,7 +39,7 @@ def baixar_arquivo():
 
     return True
 # Read data
-def baixar_arquivo()
+baixar_arquivo()
 dfbr= pd.read_csv(DATA_PATH.joinpath("agendaporangatu.csv"))
 #----------------------------------------------------------------------------------
 
