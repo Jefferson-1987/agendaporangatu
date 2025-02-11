@@ -28,12 +28,13 @@ def baixar_arquivo():
 
     return True
 
-
+baixar_arquivo()
 #from app import assistant_workflow
 BASE_PATH = pathlib.Path(__file__).parent.resolve()
 DATA_PATH = BASE_PATH.joinpath("data").resolve()
 # Crie um Blueprint para as rotas da API
 api_blueprint = Blueprint('api_blueprint', __name__)
+
 arquivo = DATA_PATH.joinpath("agendaporangatu.csv")
 def carregar_dados(arquivo):
     if os.path.exists(arquivo):
@@ -99,12 +100,11 @@ def receber_json():
         fonte= "WhatsApp"
         inicio= data.get('inicio')
         ESF= data.get('esf')
-        departamento= data.get('departamento')
 
         if intencao=="agendamento":
-            resposta=incluir_agendamento(nome, fonte, inicio, ESF, departamento)
+            resposta=incluir_agendamento(arquivo, nome, fonte, inicio, ESF, "Clínica Geral")
         elif intencao=="reagendamento":
-            resposta=incluir_agendamento(nome, fonte, inicio, ESF, departamento)
+            resposta=incluir_agendamento(arquivo, nome, inicio, ESF, "Clínica Geral")
         elif intencao=="cancelamento":
             resposta=cancelar_agendamento(arquivo, nome)
 
