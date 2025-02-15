@@ -54,13 +54,13 @@ def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
         "Tipo de Admissao": "Eletiva",
         "Inicio do Atendimento": inicio,
         "CPF": 1,
-        "Pontuacao de Cuidado": '-',
+        "Pontuacao de Cuidado": '',
         "Hora do Check-In": inicio,
         "Nome": nome,
         "Nome da ESF": ESF,
         "Departamento": departamento,
-        "Diagnostico Principal": '-',
-        "Data/Hora de Alta": "-",
+        "Diagnostico Principal": '',
+        "Data/Hora de Alta": "",
         "Status do Atendimento": "Agendado",
         "Tempo de Espera (Min)": "0"
     }
