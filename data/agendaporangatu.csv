@@ -10,7 +10,7 @@ Telefone,Elective,2014-01-14 8:25:33 AM,4,14/01/2014 07:53:00 AM,ESF Jardim Bras
 Telefone,Elective,2014-01-14 8:51:19 AM,4,14/01/2014 07:53:00 AM,ESF Jardim Brasília,Consulta odontológica,,,Rafael Martins,Cancelado,1,58
 WhatsApp,Elective,2014-01-14 9:02:16 AM,4,14/01/2014 07:53:00 AM,CEO Odontologia,Cirurgia Geral,,,Fernanda Rocha,Cancelado,1,69
 Pessoalmente,Emergencia,2014-01-14 9:30:12 PM,3,14/01/2014 07:18:00 PM,ESF São Francisco,Cardiologia,,,Eduardo Ramos,Cancelado,1,132
-Pessoalmente,Elective,2014-01-16 9:20:37 AM,3,16/01/2014 08:57:00 AM,ESF Central,Pediatria,,,Larissa Fernandes,Cancelado,1,22
+Pessoalmente,Elective,2014-01-16 9:20:37 AM,3,16/01/2014 08:57:00 AM,ESF Central,Pediatria,,,Larissa Fernandes,Cancelado,1,23
 Telefone,Elective,2014-01-16 10:49:19 AM,2,16/01/2014 08:57:00 AM,ESF Sol Nascente,Cirurgia Geral,,,Lucas Lima,Cancelado,1,112
 Pessoalmente,Elective,2014-01-16 11:03:35 AM,3,16/01/2014 08:57:00 AM,CEO Odontologia,Pediatria,,,Lucas Lima,Cancelado,1,126
 WhatsApp,Emergencia,2014-01-17 10:45:36 AM,2,17/01/2014 10:23:00 AM,ESF São Francisco,Cardiologia,,,Karine Barbosa,Cancelado,1,22
@@ -1594,8 +1594,9 @@ WhatsApp,Emergencia,2014-01-06 4:02:02 PM,3,06/01/2014 02:10:00 PM,ESF São Fran
 Telefone,Emergencia,2014-01-06 4:07:39 PM,2,06/01/2014 02:10:00 PM,ESF Primavera,Consulta odontológica,Cong Pyloric Stenosis,2014-01-08,Gustavo Nogueira,Inpatient Discharged,1,117
 Telefone,Emergencia,2014-01-06 7:57:36 PM,6,06/01/2014 07:35:00 PM,ESF Central,Cirurgia Bucal,Iron Defic Anemia Nos,2014-01-08,Fernanda Rocha,Inpatient Discharged,1,22
 Telefone,Emergencia,2014-01-06 9:13:12 PM,2,06/01/2014 07:35:00 PM,ESF Primavera,Ortopedia,Iron Defic Anemia Nos,2014-01-08,Larissa Fernandes,Inpatient Discharged,1,98
-Pessoalmente,Emergencia,2014-01-06 08:48:25 PM,5,06/01/2014 07:55:00 PM,ESF Raizama,Cirurgia Bucal,"Pneumonia, Organism Nos",2014-01-08,Eduardo Ramos,Discharged,1,53
+Pessoalmente,Emergencia,2014-01-06 8:48:25 PM,5,06/01/2014 07:55:00 PM,ESF Raizama,Cirurgia Bucal,"Pneumonia, Organism Nos",2014-01-08,Eduardo Ramos,Discharged,1,53
 Telefone,Emergencia,2014-01-06 9:04:59 PM,5,06/01/2014 07:55:00 PM,ESF São Francisco,Ginecologia,"Pneumonia, Organism Nos",2014-01-08,Larissa Fernandes,Discharged,1,69
 Pessoalmente,Emergencia,2014-01-06 10:01:10 PM,2,06/01/2014 08:46:00 PM,ESF Record,Ginecologia,Constipation Nos,2014-01-08,Rafael Martins,OBS Discharged,1,75
-Telefone,Emergencia,2014-01-06 10:12:24 PM,2,06/01/2014 8:46:00 PM,CAPS,Clínica Geral,Constipation Nos,2014-01-08,Rafael Martins,OBS Discharged,1,86
+Telefone,Emergencia,2014-01-06 10:12:24 PM,2,06/01/2014 08:46:00 PM,CAPS,Clínica Geral,Constipation Nos,2014-01-08,Rafael Martins,OBS Discharged,1,86
+WhatsApp,Emergencia,2014-01-06 9:46:25 PM,2,06/01/2014 09:29:00 PM,ESF Sol Nascente,Cardiologia,Viral Enteritis Nos,2014-01-08,Lucas Lima,Inpatient Discharged,1,17
 
