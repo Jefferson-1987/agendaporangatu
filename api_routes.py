@@ -104,7 +104,7 @@ def receber_json():
         if intencao=="agendamento":
             resposta=incluir_agendamento(arquivo, nome, fonte, inicio, ESF, "Clínica Geral")
         elif intencao=="reagendamento":
-            resposta=incluir_agendamento(arquivo, nome, inicio, ESF, "Clínica Geral")
+            resposta=reagendar_atendimento(arquivo, nome, inicio, ESF, "Clínica Geral")
         elif intencao=="cancelamento":
             resposta=cancelar_agendamento(arquivo, nome)
 
