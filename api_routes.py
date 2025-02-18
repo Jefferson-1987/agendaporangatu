@@ -88,6 +88,17 @@ def reagendar_atendimento(arquivo, nome, inicio, ESF, departamento):
     salvar_dados(df, arquivo)
     enviar_arquivo()
     return f"Agendamento reagendado para a data {nova_hora} com sucesso!"
+
+def notaatendimento(arquivo, nome, inicio, nota):
+    baixar_arquivo()
+    df = carregar_dados(arquivo)
+    df.loc[df["Nome"] == nome, "Hora do Check-In"] = inicio
+    df.loc[df["Nome"] == nome, "Pontuacao de Cuidado"] = nota
+    df.loc[df["Nome"] == nome, "Status do Atendimento"] = "Atendido"
+    salvar_dados(df, arquivo)
+    enviar_arquivo()
+    return f"Sua nota de atendimento {nota} foi enviada com sucesso!"
+    
 #incluir_agendamento(arquivo, "Jefferson Peres", "WhatsApp","07/02/2025 2:39:05 PM", "ESF Vila Primavera", "Clínica Geral")
 @api_blueprint.route('/receber_json', methods=['POST'])
 def receber_json():
@@ -107,7 +118,10 @@ def receber_json():
             resposta=reagendar_atendimento(arquivo, nome, inicio, ESF, "Clínica Geral")
         elif intencao=="cancelamento":
             resposta=cancelar_agendamento(arquivo, nome)
-
+        elif intencao=="notaatendimento":
+            nota = data.get('nota')
+            resposta=notaatendimento(arquivo, nome, inicio, nota)
+            
         return jsonify({"retorno": f"{resposta}"}), 200
 
     except Exception as e:
