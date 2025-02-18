@@ -80,7 +80,7 @@ def cancelar_agendamento(arquivo, nome):
 def reagendar_atendimento(arquivo, nome, inicio, ESF, departamento):
     baixar_arquivo()
     df = carregar_dados(arquivo)
-    nova_hora = input("Nova Hora do Check-In: ")
+    nova_hora = f"Nova Hora do Check-In: {inicio}"
     df.loc[df["Nome"] == nome, "Hora do Check-In"] = inicio
     df.loc[df["Nome"] == nome, "Nome da ESF"] = ESF
     df.loc[df["Nome"] == nome, "Departamento"] = departamento
