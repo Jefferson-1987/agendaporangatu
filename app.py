@@ -192,8 +192,8 @@ def gerarmapadecalorpaciente(comeco, fim, ESF, tipoAdmissao):
     filtrado_dfbr = filtrado_dfbr.sort_values("Hora do Check-In").set_index("Hora do Check-In")[comeco:fim]
     #print(f'\n\n\n\n\n    O filtrado é {filtrado_dfbr}')
 
-    x_axisbr= ['08h', '09h', '10h', '11h', '12h', '13h', '14h', '15h', '16h', '17h', '18h']
-    x_axis = [datetime.time(i).strftime("%I %p") for i in range(8,19)]
+    x_axisbr= ['08h', '09h', '10h', '11h', '12h', '13h', '14h', '15h', '16h', '17h']
+    x_axis = [datetime.time(i).strftime("%I %p") for i in range(8,18)]
 
 
     y_axis = day_list
@@ -202,7 +202,7 @@ def gerarmapadecalorpaciente(comeco, fim, ESF, tipoAdmissao):
     diadasemana = ""
 
     # Get z value : sum(number of records) based on x, y,
-    z = np.zeros((7, 11))
+    z = np.zeros((7, 10))
     annotations = []
 
     for ind_y, day in enumerate(y_axis):
@@ -620,12 +620,12 @@ app.layout = html.Div(
 def update_heatmap(start, end, clinic, admit_type, *args):
     start = start + " 00:00:00"
     end = end + " 00:00:00"
-    x_axis = [datetime.time(i).strftime("%I %p") for i in range(8,19)]
+    x_axis = [datetime.time(i).strftime("%I %p") for i in range(8,18)]
     filtrado_dfbr = dfbr[(dfbr["Nome da ESF"] == clinic) & (dfbr["Fonte de Admissao"].isin(admit_type))]
     filtrado_dfbr = filtrado_dfbr.sort_values("Hora do Check-In").set_index("Hora do Check-In")[start:end]
     ctx = dash.callback_context  # Contexto para verificar qual Input disparou o callback
     triggered = ctx.triggered[0]['prop_id'] if ctx.triggered else None
-    horas = ['08h', '09h', '10h', '11h', '12h', '13h', '14h', '15h', '16h', '17h', '18h']
+    horas = ['08h', '09h', '10h', '11h', '12h', '13h', '14h', '15h', '16h', '17h']
     print(f"Triggered by: {triggered}")
     print(f"args: {args}")
     annotations=[]
@@ -660,7 +660,7 @@ def update_heatmap(start, end, clinic, admit_type, *args):
             annotation_dict = dict(
             showarrow=False,
             text="<br>".join(listanomes),  # Junta os nomes corretamente
-            font=dict(family="sans-serif", size=12, color="black"),
+            font=dict(family="sans-serif", size=10, color="black"),
             x=x_val_br,  # Garante que está no centro da célula
             y=dia_clicado,  # Mantém a posição correta no eixo Y
             xref="x1",  # Referência correta para o eixo X
@@ -695,7 +695,7 @@ def update_heatmap(start, end, clinic, admit_type, *args):
             annotation_dict = dict(
             showarrow=False,
             text="<br>".join(listanomes),  # Junta os nomes corretamente
-            font=dict(family="sans-serif", size=12, color="black"),
+            font=dict(family="sans-serif", size=10, color="black"),
             x=x_val_br,  # Garante que está no centro da célula
             y=dia_clicado,  # Mantém a posição correta no eixo Y
             xref="x1",  # Referência correta para o eixo X
@@ -760,7 +760,7 @@ def update_table(start, end, clinic, admit_type, heatmap_click, *args):
     #print(f'\n  clinic  -> {clinic} \n admit_type  -> {admit_type} \n')
     start = start + " 00:00:00"
     end = end + " 00:00:00"
-    x_axis = [datetime.time(i).strftime("%I %p") for i in range(8,19)]
+    x_axis = [datetime.time(i).strftime("%I %p") for i in range(8,18)]
     filtrado_dfbr = dfbr[(dfbr["Nome da ESF"] == clinic) & (dfbr["Fonte de Admissao"].isin(admit_type))]
     filtrado_dfbr = filtrado_dfbr.sort_values("Hora do Check-In").set_index("Hora do Check-In")[start:end]
     ctx = dash.callback_context
