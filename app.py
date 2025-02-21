@@ -720,7 +720,8 @@ def update_heatmap(start, end, clinic, admit_type, *args):
         "x": x,
         "y": y,
         "type": "heatmap",
-        "colorscale": "Blues",
+        "showscale": False,
+        "colorscale": [[0, "#caf3ff"], [1, "#2c82ff"]],
     }],
         "layout": {
             "title": titulo,
