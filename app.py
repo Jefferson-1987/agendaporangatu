@@ -558,7 +558,7 @@ app.layout = html.Div(
         # Left column
         html.Div(
             id="left-column",
-            className="four columns",
+            className="three columns",
             children=[cartaodescritor(), gerarcontroledosgraficos()]
             + [
                 html.Div(
@@ -569,7 +569,7 @@ app.layout = html.Div(
         # Right column
         html.Div(
             id="right-column",
-            className="eight columns",
+            className="nine columns",
             children=[
                 #Botões de dias da semana
                 html.Div(
