@@ -660,7 +660,7 @@ def update_heatmap(start, end, clinic, admit_type, *args):
             annotation_dict = dict(
             showarrow=False,
             text="<br>".join(listanomes),  # Junta os nomes corretamente
-            font=dict(family="sans-serif", size=10, color="black"),
+            font=dict(family="sans-serif", size=12, color="black"),
             x=x_val_br,  # Garante que está no centro da célula
             y=dia_clicado,  # Mantém a posição correta no eixo Y
             xref="x1",  # Referência correta para o eixo X
@@ -695,7 +695,7 @@ def update_heatmap(start, end, clinic, admit_type, *args):
             annotation_dict = dict(
             showarrow=False,
             text="<br>".join(listanomes),  # Junta os nomes corretamente
-            font=dict(family="sans-serif", size=10, color="black"),
+            font=dict(family="sans-serif", size=12, color="black"),
             x=x_val_br,  # Garante que está no centro da célula
             y=dia_clicado,  # Mantém a posição correta no eixo Y
             xref="x1",  # Referência correta para o eixo X
