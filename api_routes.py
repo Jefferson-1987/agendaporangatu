@@ -46,28 +46,51 @@ def carregar_dados(arquivo):
 def salvar_dados(df, arquivo):
     df.to_csv(arquivo, index=False)
 
+def verifica_horario_ocupado(arquivo_csv, horario_procurado):
+    # Carrega o arquivo CSV
+    df = pd.read_csv(arquivo_csv)
+
+    # Converte a coluna 'Hora do Check-In' para datetime com formato especificado
+    df['Hora do Check-In'] = pd.to_datetime(df['Hora do Check-In'], format='%d/%m/%Y %I:%M:%S %p', errors='coerce')
+
+    # Converte o horário procurado para datetime
+    horario_procurado = pd.to_datetime(horario_procurado, format='%d/%m/%Y %I:%M:%S %p', errors='coerce')
+
+    # Filtra os registros com o mesmo horário
+    registros_mesmo_horario = df[df['Hora do Check-In'] == horario_procurado]
+
+    # Verifica se há mais de 2 usuários ocupando o horário
+    if len(registros_mesmo_horario) >= 2:
+        return 'Este horário está ocupado'
+    else:
+        return 'Horario disponivel'
+
 def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
     baixar_arquivo()
     df = carregar_dados(arquivo)
-    novo_agendamento = {
-        "Fonte de Admissao": fonte,
-        "Tipo de Admissao": "Eletiva",
-        "Inicio do Atendimento": inicio,
-        "CPF": 1,
-        "Pontuacao de Cuidado": '',
-        "Hora do Check-In": inicio,
-        "Nome": nome,
-        "Nome da ESF": ESF,
-        "Departamento": departamento,
-        "Diagnostico Principal": '',
-        "Data/Hora de Alta": "",
-        "Status do Atendimento": "Agendado",
-        "Tempo de Espera (Min)": "0"
-    }
-    df = pd.concat([df, pd.DataFrame([novo_agendamento])], ignore_index=True)
-    salvar_dados(df, arquivo)
-    enviar_arquivo()
-    return f"Agendamento incluído na data {inicio} na {ESF}!"
+        if verifica_horario_ocupado(arquivo, inicio)== 'Horario disponivel':
+        novo_agendamento = {
+            "Fonte de Admissao": fonte,
+            "Tipo de Admissao": "Eletiva",
+            "Inicio do Atendimento": inicio,
+            "CPF": 1,
+            "Pontuacao de Cuidado": '',
+            "Hora do Check-In": inicio,
+            "Nome": nome,
+            "Nome da ESF": ESF,
+            "Departamento": departamento,
+            "Diagnostico Principal": '',
+            "Data/Hora de Alta": "",
+            "Status do Atendimento": "Agendado",
+            "Tempo de Espera (Min)": "0"
+        }
+        df = pd.concat([df, pd.DataFrame([novo_agendamento])], ignore_index=True)
+        salvar_dados(df, arquivo)
+        enviar_arquivo()
+        return f"Agendamento incluído na data {inicio} na {ESF}!"
+    else:
+        resultado = verifica_horario_ocupado(arquivo, inicio)
+        return resultado
 
 def cancelar_agendamento(arquivo, nome):
     baixar_arquivo()
@@ -80,14 +103,18 @@ def cancelar_agendamento(arquivo, nome):
 def reagendar_atendimento(arquivo, nome, inicio, ESF, departamento):
     baixar_arquivo()
     df = carregar_dados(arquivo)
-    nova_hora = f"Nova Hora do Check-In: {inicio}"
-    df.loc[df["Nome"] == nome, "Hora do Check-In"] = inicio
-    df.loc[df["Nome"] == nome, "Nome da ESF"] = ESF
-    df.loc[df["Nome"] == nome, "Departamento"] = departamento
-    df.loc[df["Nome"] == nome, "Status do Atendimento"] = "Reagendado"
-    salvar_dados(df, arquivo)
-    enviar_arquivo()
-    return f"Agendamento reagendado para a data {nova_hora} com sucesso!"
+    if verifica_horario_ocupado(arquivo, inicio)== 'Horario disponivel':
+        nova_hora = f"Nova Hora do Check-In: {inicio}"
+        df.loc[df["Nome"] == nome, "Hora do Check-In"] = inicio
+        df.loc[df["Nome"] == nome, "Nome da ESF"] = ESF
+        df.loc[df["Nome"] == nome, "Departamento"] = departamento
+        df.loc[df["Nome"] == nome, "Status do Atendimento"] = "Reagendado"
+        salvar_dados(df, arquivo)
+        enviar_arquivo()
+        return f"Agendamento reagendado para a data {nova_hora} com sucesso!"
+    else:
+        resultado = verifica_horario_ocupado(arquivo, inicio)
+        return resultado
 
 def notaatendimento(arquivo, nome, inicio, nota):
     baixar_arquivo()
