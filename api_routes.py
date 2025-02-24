@@ -13,6 +13,25 @@ client = storage.Client()
 bucket_name = "dashporangatu"
 bucket = client.bucket(bucket_name)
 
+def verifica_horario_ocupado(arquivo_csv, horario_procurado):
+    # Carrega o arquivo CSV
+    df = pd.read_csv(arquivo_csv)
+
+    # Converte a coluna 'Hora do Check-In' para datetime com formato especificado
+    df['Hora do Check-In'] = pd.to_datetime(df['Hora do Check-In'], format='%d/%m/%Y %I:%M:%S %p', errors='coerce')
+
+    # Converte o horário procurado para datetime
+    horario_procurado = pd.to_datetime(horario_procurado, format='%d/%m/%Y %I:%M:%S %p', errors='coerce')
+
+    # Filtra os registros com o mesmo horário
+    registros_mesmo_horario = df[df['Hora do Check-In'] == horario_procurado]
+
+    # Verifica se há mais de 2 usuários ocupando o horário
+    if len(registros_mesmo_horario) >= 2:
+        return 'Este horário está ocupado'
+    else:
+        return 'Horario disponivel'
+
 
 # define function that uploads a file from the bucket
 def enviar_arquivo():
@@ -46,28 +65,10 @@ def carregar_dados(arquivo):
 def salvar_dados(df, arquivo):
     df.to_csv(arquivo, index=False)
 
-def verifica_horario_ocupado(arquivo_csv, horario_procurado):
-    # Carrega o arquivo CSV
-    df = pd.read_csv(arquivo_csv)
-
-    # Converte a coluna 'Hora do Check-In' para datetime com formato especificado
-    df['Hora do Check-In'] = pd.to_datetime(df['Hora do Check-In'], format='%d/%m/%Y %I:%M:%S %p', errors='coerce')
-
-    # Converte o horário procurado para datetime
-    horario_procurado = pd.to_datetime(horario_procurado, format='%d/%m/%Y %I:%M:%S %p', errors='coerce')
-
-    # Filtra os registros com o mesmo horário
-    registros_mesmo_horario = df[df['Hora do Check-In'] == horario_procurado]
-
-    # Verifica se há mais de 2 usuários ocupando o horário
-    if len(registros_mesmo_horario) >= 2:
-        return 'Este horário está ocupado'
-    else:
-        return 'Horario disponivel'
-
 def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
+    #baixar_arquivo()
     df = carregar_dados(arquivo)
-        if verifica_horario_ocupado(arquivo, inicio)== 'Horario disponivel':
+    if verifica_horario_ocupado(arquivo, inicio)== 'Horario disponivel':
         novo_agendamento = {
             "Fonte de Admissao": fonte,
             "Tipo de Admissao": "Eletiva",
@@ -85,7 +86,7 @@ def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
         }
         df = pd.concat([df, pd.DataFrame([novo_agendamento])], ignore_index=True)
         salvar_dados(df, arquivo)
-        enviar_arquivo()
+        #enviar_arquivo()
         return f"Agendamento incluído na data {inicio} na {ESF}!"
     else:
         resultado = verifica_horario_ocupado(arquivo, inicio)
@@ -113,6 +114,7 @@ def reagendar_atendimento(arquivo, nome, inicio, ESF, departamento):
         resultado = verifica_horario_ocupado(arquivo, inicio)
         return resultado
 
+
 def notaatendimento(arquivo, nome, inicio, nota):
     df = carregar_dados(arquivo)
     df.loc[df["Nome"] == nome, "Hora do Check-In"] = inicio
@@ -122,7 +124,7 @@ def notaatendimento(arquivo, nome, inicio, nota):
     enviar_arquivo()
     return f"Sua nota de atendimento {nota} foi enviada com sucesso!"
     
-#incluir_agendamento(arquivo, "Jefferson Peres", "WhatsApp","07/02/2025 2:39:05 PM", "ESF Vila Primavera", "Clínica Geral")
+#print(incluir_agendamento(arquivo, "Jefferson Peres", "WhatsApp","25/02/2025 03:00:00 PM", "ESF Vila Primavera", "Clínica Geral"))
 @api_blueprint.route('/receber_json', methods=['POST'])
 def receber_json():
     try:
