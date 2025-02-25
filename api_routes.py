@@ -86,7 +86,7 @@ def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
         }
         df = pd.concat([df, pd.DataFrame([novo_agendamento])], ignore_index=True)
         salvar_dados(df, arquivo)
-        #enviar_arquivo()
+        enviar_arquivo()
         return f"Agendamento incluído na data {inicio} na {ESF}!"
     else:
         resultado = verifica_horario_ocupado(arquivo, inicio)
