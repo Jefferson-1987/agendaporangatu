@@ -89,8 +89,7 @@ def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
         enviar_arquivo()
         return f"Agendamento incluído na data {inicio} na {ESF}!"
     else:
-        resultado = verifica_horario_ocupado(arquivo, inicio)
-        return resultado
+        return 'Este horário está ocupado'
 
 def cancelar_agendamento(arquivo, nome):
     baixar_arquivo()
@@ -113,8 +112,7 @@ def reagendar_atendimento(arquivo, nome, inicio, ESF, departamento):
         enviar_arquivo()
         return f"Agendamento reagendado para a data {nova_hora} com sucesso!"
     else:
-        resultado = verifica_horario_ocupado(arquivo, inicio)
-        return resultado
+        return 'Este horário está ocupado'
 
 
 def notaatendimento(arquivo, nome, inicio, nota):
