@@ -27,7 +27,7 @@ def verifica_horario_ocupado(arquivo_csv, horario_procurado):
     registros_mesmo_horario = df[df['Hora do Check-In'] == horario_procurado]
 
     # Verifica se há mais de 2 usuários ocupando o horário
-    if len(registros_mesmo_horario) >= 2:
+    if len(registros_mesmo_horario) > 2:
         return 'Este horário está ocupado'
     else:
         return 'Horario disponivel'
