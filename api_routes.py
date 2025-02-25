@@ -66,7 +66,7 @@ def salvar_dados(df, arquivo):
     df.to_csv(arquivo, index=False)
 
 def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
-    #baixar_arquivo()
+    baixar_arquivo()
     df = carregar_dados(arquivo)
     if verifica_horario_ocupado(arquivo, inicio)== 'Horario disponivel':
         novo_agendamento = {
@@ -93,6 +93,7 @@ def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
         return resultado
 
 def cancelar_agendamento(arquivo, nome):
+    baixar_arquivo()
     df = carregar_dados(arquivo)
     df = df[df["Nome"] != nome]
     salvar_dados(df, arquivo)
@@ -100,6 +101,7 @@ def cancelar_agendamento(arquivo, nome):
     return "Agendamento cancelado com sucesso."
 
 def reagendar_atendimento(arquivo, nome, inicio, ESF, departamento):
+    baixar_arquivo()
     df = carregar_dados(arquivo)
     if verifica_horario_ocupado(arquivo, inicio)== 'Horario disponivel':
         nova_hora = f"Nova Hora do Check-In: {inicio}"
@@ -116,6 +118,7 @@ def reagendar_atendimento(arquivo, nome, inicio, ESF, departamento):
 
 
 def notaatendimento(arquivo, nome, inicio, nota):
+    baixar_arquivo()
     df = carregar_dados(arquivo)
     df.loc[df["Nome"] == nome, "Hora do Check-In"] = inicio
     df.loc[df["Nome"] == nome, "Pontuacao de Cuidado"] = nota
