@@ -552,9 +552,13 @@ def criatabeladefiguras(departamento, dfbrfiltrado, categoria, categoriaespectro
 
 
 app.layout = html.Div(
+    dcc.Interval(
+        id='interval-component',
+        interval=10*1000,  # em milissegundos (10 segundos neste exemplo)
+        n_intervals=0
+    ),
     id="app-container",
     children=[
-
         # Left column
         html.Div(
             id="left-column",
@@ -611,6 +615,7 @@ app.layout = html.Div(
         Input("selecao-de-data", "end_date"),
         Input("opcao-ESF", "value"),
         Input("menu-admissao", "value"),
+        Input('interval-component', 'n_intervals'),
         Input('patient_volume_hm', 'clickData'),
         *[Input(f'btn-{dia}', 'n_clicks') for dia in day_list_pt],
         Input('reset-btn', 'n_clicks')
@@ -618,6 +623,7 @@ app.layout = html.Div(
 )
 
 def update_heatmap(start, end, clinic, admit_type, *args):
+    baixar_arquivo()
     start = start + " 00:00:00"
     end = end + " 00:00:00"
     x_axis = [datetime.time(i).strftime("%I %p") for i in range(8,18)]
@@ -736,6 +742,7 @@ def update_heatmap(start, end, clinic, admit_type, *args):
 app.clientside_callback(
     ClientsideFunction(namespace="clientside", function_name="resize"),
     Output("output-clientside", "children"),
+    Input('interval-component', 'n_intervals'),
     [Input("wait_time_table", "children")] + wait_time_inputs + score_inputs,
 )
 
@@ -746,6 +753,7 @@ app.clientside_callback(
         Input("selecao-de-data", "start_date"),
         Input("selecao-de-data", "end_date"),
         Input("opcao-ESF", "value"),
+        Input('interval-component', 'n_intervals'),
         Input("menu-admissao", "value"),
         Input("patient_volume_hm", "clickData"),
         *[Input(f'btn-{dia}', 'n_clicks') for dia in day_list_pt],
@@ -758,7 +766,7 @@ app.clientside_callback(
 
 #-------------------------------------------------------------
 def update_table(start, end, clinic, admit_type, heatmap_click, *args):
-    #print(f'\n  clinic  -> {clinic} \n admit_type  -> {admit_type} \n')
+    baixar_arquivo()
     start = start + " 00:00:00"
     end = end + " 00:00:00"
     x_axis = [datetime.time(i).strftime("%I %p") for i in range(8,18)]
