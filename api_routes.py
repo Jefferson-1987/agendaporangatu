@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, send_from_directory
 import datetime
-from google.cloud import storage
+from google.cloud import bigquery
 import os
 import pandas as pd
 from time import sleep
@@ -8,10 +8,32 @@ import json
 import pathlib
 from dotenv import load_dotenv
 
-client = storage.Client()
-# Nome do bucket
-bucket_name = "dashporangatu"
-bucket = client.bucket(bucket_name)
+client = bigquery.Client()
+
+# define function that uploads a file from the bucket
+def enviar_arquivo():
+    table_id = "agendaporangatu.dashbigquerypgt.dashporangatu"
+    df = pd.read_csv("data/agendaporangatu.csv")
+
+    # Configura a job para sobrescrever a tabela existente
+    job_config = bigquery.LoadJobConfig(
+        write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE
+    )
+    # Executa o upload para o BigQuery
+    job = client.load_table_from_dataframe(df, table_id, job_config=job_config)
+    job.result()
+    print("Tabela 'dashporangatu' sobrescrita com sucesso! 🚀")
+
+def baixar_arquivo():
+    # Executa a consulta para obter todos os dados
+    table_id = "agendaporangatu.dashbigquerypgt.dashporangatu"
+    query = f"SELECT * FROM `{table_id}`"
+    df = client.query(query).to_dataframe()
+
+    # Salva como CSV
+    df.to_csv("data/agendaporangatu.csv", index=False, encoding='utf-8')
+    print("Tabela exportada como 'agendaporangatu.csv' com sucesso! 🚀")
+    return True
 
 def verifica_horario_ocupado(arquivo_csv, horario_procurado):
     # Carrega o arquivo CSV
@@ -32,20 +54,6 @@ def verifica_horario_ocupado(arquivo_csv, horario_procurado):
     else:
         return 'Horario disponivel'
 
-
-# define function that uploads a file from the bucket
-def enviar_arquivo():
-    blob = bucket.blob("agendaporangatu.csv")
-    blob.upload_from_filename("data/agendaporangatu.csv")
-    print("Arquivo enviado com sucesso!")
-#upload_cs_file('dashporangatu', 'data/agendaporangatu.csv', 'agendaporangatu.csv')
-
-def baixar_arquivo():
-    blob = bucket.blob("agendaporangatu.csv")
-    blob.download_to_filename("data/agendaporangatu.csv")
-    print("Arquivo baixado com sucesso!")
-
-    return True
 
 baixar_arquivo()
 #from app import assistant_workflow
