@@ -8,3 +8,5 @@ flask==2.2.5
 google-cloud-storage
 python-dotenv
 flask
+db-dtypes
+google-cloud-bigquery
