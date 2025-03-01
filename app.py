@@ -21,7 +21,6 @@ hoje = dt.today()
 BASE_PATH = pathlib.Path(__file__).parent.resolve()
 DATA_PATH = BASE_PATH.joinpath("data").resolve()
 client = bigquery.Client()
-# Nome do bucket
 
 
 # define function that uploads a file from the bucket
