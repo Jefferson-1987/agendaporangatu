@@ -5,7 +5,8 @@ from dash.dependencies import Input, Output, ClientsideFunction
 import numpy as np
 import pandas as pd
 import datetime
-from google.cloud import storage
+from google.cloud import bigquery
+import time
 from datetime import datetime as dt, timedelta 
 import pathlib
 from api_routes import api_blueprint
@@ -19,25 +20,35 @@ hoje = dt.today()
 # Path
 BASE_PATH = pathlib.Path(__file__).parent.resolve()
 DATA_PATH = BASE_PATH.joinpath("data").resolve()
-client = storage.Client()
+client = bigquery.Client()
 # Nome do bucket
-bucket_name = "dashporangatu"
-bucket = client.bucket(bucket_name)
 
 
 # define function that uploads a file from the bucket
 def enviar_arquivo():
-    blob = bucket.blob("agendaporangatu.csv")
-    blob.upload_from_filename("data/agendaporangatu.csv")
-    print("Arquivo enviado com sucesso!")
-#upload_cs_file('dashporangatu', 'data/agendaporangatu.csv', 'agendaporangatu.csv')
+    table_id = "agendaporangatu.dashbigquerypgt.dashporangatu"
+    df = pd.read_csv("data/agendaporangatu.csv")
+
+    # Configura a job para sobrescrever a tabela existente
+    job_config = bigquery.LoadJobConfig(
+        write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE
+    )
+    # Executa o upload para o BigQuery
+    job = client.load_table_from_dataframe(df, table_id, job_config=job_config)
+    job.result()
+    print("Tabela 'dashporangatu' sobrescrita com sucesso! 🚀")
 
 def baixar_arquivo():
-    blob = bucket.blob("agendaporangatu.csv")
-    blob.download_to_filename("data/agendaporangatu.csv")
-    print("Arquivo baixado com sucesso!")
+    # Executa a consulta para obter todos os dados
+    table_id = "agendaporangatu.dashbigquerypgt.dashporangatu"
+    query = f"SELECT * FROM `{table_id}`"
+    df = client.query(query).to_dataframe()
 
+    # Salva como CSV
+    df.to_csv("data/agendaporangatu.csv", index=False, encoding='utf-8')
+    print("Tabela exportada como 'agendaporangatu.csv' com sucesso! 🚀")
     return True
+
 # Read data
 baixar_arquivo()
 dfbr= pd.read_csv(DATA_PATH.joinpath("agendaporangatu.csv"))
@@ -388,7 +399,7 @@ def iniciatabela():
             "header",
             {"height": "50px"},
             {"id": "header_department", "children": html.B("Departamento")},
-            {"id": "header_wait_time_min", "children": html.B("Tempo de Espera (Min)")},
+            {"id": "header_wait_time_min", "children": html.B("Tempo de Espera Min")},
             {"id": "header_care_score", "children": html.B("Pontuacao de Cuidado")},
         )
     ]
@@ -417,7 +428,7 @@ def geradortabelapaciente(listadefiguras, departamentos, tempodeespera, notadoat
             "header",
             {"height": "50px"},
             {"id": "header_department", "children": html.B("Departamento")},
-            {"id": "header_wait_time_min", "children": html.B("Tempo de Espera (Min)")},
+            {"id": "header_wait_time_min", "children": html.B("Tempo de Espera Min")},
             {"id": "header_care_score", "children": html.B("Pontuacao de Cuidado")},
         )
     ]
@@ -484,7 +495,7 @@ def criatabeladefiguras(departamento, dfbrfiltrado, categoria, categoriaespectro
     :return: Plotly figura do dicionário.
     """
     aggregation = {
-        "Tempo de Espera (Min)": "mean",
+        "Tempo de Espera Min": "mean",
         "Pontuacao de Cuidado": "mean",
         "Dias da semana": "first",
         "Hora do Check-In": "first",
@@ -513,7 +524,7 @@ def criatabeladefiguras(departamento, dfbrfiltrado, categoria, categoriaespectro
         + "<br>Hora do Check-in: "
         + check_in
         + "<br>Tempo de espera: "
-        + agrupado["Tempo de Espera (Min)"].round(decimals=1).map(str)
+        + agrupado["Tempo de Espera Min"].round(decimals=1).map(str)
         + " Minutos,  Nota de atendimento : "
         + agrupado["Pontuacao de Cuidado"].round(decimals=1).map(str)
     )
@@ -552,13 +563,9 @@ def criatabeladefiguras(departamento, dfbrfiltrado, categoria, categoriaespectro
 
 
 app.layout = html.Div(
-    dcc.Interval(
-        id='interval-component',
-        interval=10*1000,  # em milissegundos (10 segundos neste exemplo)
-        n_intervals=0
-    ),
     id="app-container",
     children=[
+
         # Left column
         html.Div(
             id="left-column",
@@ -593,6 +600,7 @@ app.layout = html.Div(
                     ],
                 ),
                 html.Button("Resetar", id="reset-btn", n_clicks=0),
+                dcc.Interval(id="interval-update", interval=60000, n_intervals=0),  # Atualiza a cada 60s
                 # Patient Wait time by Department
                 html.Div(
                     id="wait_time_card",
@@ -615,15 +623,14 @@ app.layout = html.Div(
         Input("selecao-de-data", "end_date"),
         Input("opcao-ESF", "value"),
         Input("menu-admissao", "value"),
-        Input('interval-component', 'n_intervals'),
         Input('patient_volume_hm', 'clickData'),
         *[Input(f'btn-{dia}', 'n_clicks') for dia in day_list_pt],
+        Input("interval-update", "n_intervals"),
         Input('reset-btn', 'n_clicks')
     ]
 )
 
 def update_heatmap(start, end, clinic, admit_type, *args):
-    baixar_arquivo()
     start = start + " 00:00:00"
     end = end + " 00:00:00"
     x_axis = [datetime.time(i).strftime("%I %p") for i in range(8,18)]
@@ -742,7 +749,6 @@ def update_heatmap(start, end, clinic, admit_type, *args):
 app.clientside_callback(
     ClientsideFunction(namespace="clientside", function_name="resize"),
     Output("output-clientside", "children"),
-    Input('interval-component', 'n_intervals'),
     [Input("wait_time_table", "children")] + wait_time_inputs + score_inputs,
 )
 
@@ -753,10 +759,10 @@ app.clientside_callback(
         Input("selecao-de-data", "start_date"),
         Input("selecao-de-data", "end_date"),
         Input("opcao-ESF", "value"),
-        Input('interval-component', 'n_intervals'),
         Input("menu-admissao", "value"),
         Input("patient_volume_hm", "clickData"),
         *[Input(f'btn-{dia}', 'n_clicks') for dia in day_list_pt],
+        Input("interval-update", "n_intervals"),
         Input("reset-btn", "n_clicks"),
     ]
     + wait_time_inputs
@@ -766,7 +772,7 @@ app.clientside_callback(
 
 #-------------------------------------------------------------
 def update_table(start, end, clinic, admit_type, heatmap_click, *args):
-    baixar_arquivo()
+    #print(f'\n  clinic  -> {clinic} \n admit_type  -> {admit_type} \n')
     start = start + " 00:00:00"
     end = end + " 00:00:00"
     x_axis = [datetime.time(i).strftime("%I %p") for i in range(8,18)]
@@ -820,8 +826,8 @@ def update_table(start, end, clinic, admit_type, heatmap_click, *args):
         departamentos = dados_filtrados["Departamento"].unique()
         
     wait_time_xrange = [
-        filtered_dfbr["Tempo de Espera (Min)"].min() - 2,
-        filtered_dfbr["Tempo de Espera (Min)"].max() + 2,
+        filtered_dfbr["Tempo de Espera Min"].min() - 2,
+        filtered_dfbr["Tempo de Espera Min"].max() + 2,
     ]
     score_xrange = [
         filtered_dfbr["Pontuacao de Cuidado"].min() - 0.5,
@@ -835,7 +841,7 @@ def update_table(start, end, clinic, admit_type, heatmap_click, *args):
         ):  # Default condition, all ""
 
             for departamento in departamentos:
-                department_wait_time_figure = criatabeladefiguras(departamento, dados_filtrados, "Tempo de Espera (Min)", wait_time_xrange, "")
+                department_wait_time_figure = criatabeladefiguras(departamento, dados_filtrados, "Tempo de Espera Min", wait_time_xrange, "")
                 figure_list.append(department_wait_time_figure)
 
             for departamento in departamentos:
@@ -856,7 +862,7 @@ def update_table(start, end, clinic, admit_type, heatmap_click, *args):
             department_wait_time_figure = criatabeladefiguras(
                 departamento,
                 dados_filtrados,
-                "Tempo de Espera (Min)",
+                "Tempo de Espera Min",
                 wait_time_xrange,
                 wait_selected_index,
             )
@@ -878,7 +884,10 @@ def update_table(start, end, clinic, admit_type, heatmap_click, *args):
             
     table = geradortabelapaciente(figure_list, departamentos, wait_time_xrange, score_xrange)
     return table
-
+def atualizar_dados(n, interval):
+    global dados
+    dados = baixar_arquivo()  # Recarrega os dados mais recentes
+    return f"Última atualização: {time.strftime('%H:%M:%S')}"
 # Run the server
 if __name__ == "__main__":
     app.run_server(debug=False, port=8080, host="0.0.0.0")
