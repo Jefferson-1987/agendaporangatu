@@ -67,7 +67,7 @@ def carregar_dados(arquivo):
     if os.path.exists(arquivo):
         return pd.read_csv(arquivo)
     else:
-        colunas = ["Fonte de Admissao", "Tipo de Admissao", "Inicio do Atendimento", "Pontuacao de Cuidado", "Hora do Check-In", "Nome", "Nome da ESF", "Departamento", "Diagnostico Principal", "Data/Hora de Alta", "Numero do Atendimento", "Status do Atendimento", "Numero de Registros", "Tempo de Espera (Min)"]
+        colunas = ["Fonte de Admissao", "Tipo de Admissao", "Inicio do Atendimento", "Pontuacao de Cuidado", "Hora do Check-In", "Nome", "Nome da ESF", "Departamento", "Diagnostico Principal", "Data e Hora de Alta", "Numero do Atendimento", "Status do Atendimento", "Numero de Registros", "Tempo de Espera Min"]
         return pd.DataFrame(columns=colunas)
 
 def salvar_dados(df, arquivo):
@@ -88,9 +88,9 @@ def incluir_agendamento(arquivo,nome, fonte, inicio, ESF, departamento):
             "Nome da ESF": ESF,
             "Departamento": departamento,
             "Diagnostico Principal": '',
-            "Data/Hora de Alta": "",
+            "Data e Hora de Alta": "",
             "Status do Atendimento": "Agendado",
-            "Tempo de Espera (Min)": "0"
+            "Tempo de Espera Min": "0"
         }
         df = pd.concat([df, pd.DataFrame([novo_agendamento])], ignore_index=True)
         salvar_dados(df, arquivo)
