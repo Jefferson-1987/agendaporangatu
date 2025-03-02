@@ -21,6 +21,7 @@ hoje = dt.today()
 BASE_PATH = pathlib.Path(__file__).parent.resolve()
 DATA_PATH = BASE_PATH.joinpath("data").resolve()
 client = bigquery.Client()
+# Nome do bucket
 
 
 # define function that uploads a file from the bucket
@@ -49,35 +50,24 @@ def baixar_arquivo():
     return True
 
 # Read data
-baixar_arquivo()
-dfbr= pd.read_csv(DATA_PATH.joinpath("agendaporangatu.csv"))
-#----------------------------------------------------------------------------------
+def carregardados(dfbr):
+    baixar_arquivo()
+    df_temp = pd.read_csv(DATA_PATH.joinpath("agendaporangatu.csv"))
+    dfbr[:] = df_temp  # Substitui os dados dentro do DataFrame original
 
-listadeESF=dfbr["Nome da ESF"].unique()
-dfbr["Fonte de Admissao"] = dfbr["Fonte de Admissao"].fillna("Não identificado")
-listadeAdmissao = dfbr["Fonte de Admissao"].unique().tolist()
+    dfbr["Fonte de Admissao"] = dfbr["Fonte de Admissao"].fillna("Não identificado")
+    dfbr["Hora do Check-In"] = dfbr["Hora do Check-In"].apply(
+        lambda x: dt.strptime(x, "%d/%m/%Y %I:%M:%S %p")
+    ) 
 
-#----------------------------------------------------------------------------------
-# Date
-# Format checkin Time
- # String -> Datetime
+    dfbr["Dias da semana"] = dfbr["Check-In hora"] = dfbr["Hora do Check-In"]
+    dfbr["Dias da semana"] = dfbr["Dias da semana"].apply(
+        lambda x: dt.strftime(x, "%A")
+    )  # Datetime -> weekday string
 
-dfbr["Hora do Check-In"] = dfbr["Hora do Check-In"].apply(
-    lambda x: dt.strptime(x, "%d/%m/%Y %I:%M:%S %p")
-) 
-#-----------------------------------------------------------------------------------
-
-# Insert weekday and hour of checkin time
-# Datetime -> weekday string
-
-dfbr["Dias da semana"] = dfbr["Check-In hora"] = dfbr["Hora do Check-In"]
-dfbr["Dias da semana"] = dfbr["Dias da semana"].apply(
-    lambda x: dt.strftime(x, "%A")
-)  # Datetime -> weekday string
-
-dfbr["Check-In hora"] = dfbr["Check-In hora"].apply(
-    lambda x: dt.strftime(x, "%I %p")
-) 
+    dfbr["Check-In hora"] = dfbr["Check-In hora"].apply(
+        lambda x: dt.strftime(x, "%I %p")
+    )
 
 day_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 day_list_pt = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"]
@@ -92,7 +82,12 @@ def diaemingles(dia_em_portugues):
         "domingo": "Sunday",
     }
     return dias_semana.get(dia_em_portugues.lower())
-#----------------------------------------------------------------------------------------------
+
+dfbr = pd.read_csv(DATA_PATH.joinpath("agendaporangatu.csv"))
+carregardados(dfbr) 
+
+listadeESF=dfbr["Nome da ESF"].unique()
+listadeAdmissao = dfbr["Fonte de Admissao"].unique().tolist()
 checkinduracao = dfbr["Hora do Check-In"].describe()
 
 # Register all departments for callbacks
@@ -197,7 +192,8 @@ def gerarmapadecalorpaciente(comeco, fim, ESF, tipoAdmissao):
 
     :return: Mapa de calor por pacientes.
     """
-    #print('\nEsta função foi chamada -> gerarmapadecalorpaciente \n')
+    dfbr = pd.read_csv(DATA_PATH.joinpath("agendaporangatu.csv"))
+    carregardados(dfbr)
     filtrado_dfbr = dfbr[(dfbr["Nome da ESF"] == ESF) & (dfbr["Fonte de Admissao"].isin(tipoAdmissao))]
     filtrado_dfbr = filtrado_dfbr.sort_values("Hora do Check-In").set_index("Hora do Check-In")[comeco:fim]
     #print(f'\n\n\n\n\n    O filtrado é {filtrado_dfbr}')
@@ -566,6 +562,7 @@ app.layout = html.Div(
     children=[
 
         # Left column
+        dcc.Interval(id="interval-update", interval=60000, n_intervals=0),  # Atualiza a cada 60s
         html.Div(
             id="left-column",
             className="three columns",
@@ -599,7 +596,6 @@ app.layout = html.Div(
                     ],
                 ),
                 html.Button("Resetar", id="reset-btn", n_clicks=0),
-                dcc.Interval(id="interval-update", interval=60000, n_intervals=0),  # Atualiza a cada 60s
                 # Patient Wait time by Department
                 html.Div(
                     id="wait_time_card",
@@ -632,6 +628,8 @@ app.layout = html.Div(
 def update_heatmap(start, end, clinic, admit_type, *args):
     start = start + " 00:00:00"
     end = end + " 00:00:00"
+    dfbr = pd.read_csv(DATA_PATH.joinpath("agendaporangatu.csv"))
+    carregardados(dfbr)
     x_axis = [datetime.time(i).strftime("%I %p") for i in range(8,18)]
     filtrado_dfbr = dfbr[(dfbr["Nome da ESF"] == clinic) & (dfbr["Fonte de Admissao"].isin(admit_type))]
     filtrado_dfbr = filtrado_dfbr.sort_values("Hora do Check-In").set_index("Hora do Check-In")[start:end]
@@ -748,7 +746,8 @@ def update_heatmap(start, end, clinic, admit_type, *args):
 app.clientside_callback(
     ClientsideFunction(namespace="clientside", function_name="resize"),
     Output("output-clientside", "children"),
-    [Input("wait_time_table", "children")] + wait_time_inputs + score_inputs,
+    [Input("wait_time_table", "children"),
+    Input("interval-update", "n_intervals")] + wait_time_inputs + score_inputs,
 )
 
 
@@ -774,13 +773,15 @@ def update_table(start, end, clinic, admit_type, heatmap_click, *args):
     #print(f'\n  clinic  -> {clinic} \n admit_type  -> {admit_type} \n')
     start = start + " 00:00:00"
     end = end + " 00:00:00"
+    if args[-2]!=0: 
+        dfbr = pd.read_csv(DATA_PATH.joinpath("agendaporangatu.csv"))
+        carregardados(dfbr) 
+
     x_axis = [datetime.time(i).strftime("%I %p") for i in range(8,18)]
     filtrado_dfbr = dfbr[(dfbr["Nome da ESF"] == clinic) & (dfbr["Fonte de Admissao"].isin(admit_type))]
     filtrado_dfbr = filtrado_dfbr.sort_values("Hora do Check-In").set_index("Hora do Check-In")[start:end]
     ctx = dash.callback_context
     triggered = ctx.triggered[0]['prop_id'] if ctx.triggered else None
-
-
     prop_id = ""
     prop_type = ""
     triggered_value = None
@@ -883,10 +884,14 @@ def update_table(start, end, clinic, admit_type, heatmap_click, *args):
             
     table = geradortabelapaciente(figure_list, departamentos, wait_time_xrange, score_xrange)
     return table
-def atualizar_dados(n, interval):
-    global dados
-    dados = baixar_arquivo()  # Recarrega os dados mais recentes
-    return f"Última atualização: {time.strftime('%H:%M:%S')}"
+    
+def update_dados(n, interval):
+    global dfbr
+    baixar_arquivo()  # Recarrega os dados mais recentes
+    dfbr= pd.read_csv("data/agendaporangatu.csv")
+    return f"Atualizar dados está sendo chamada {n} vezes"
+
+
 # Run the server
 if __name__ == "__main__":
     app.run_server(debug=False, port=8080, host="0.0.0.0")
