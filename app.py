@@ -56,13 +56,11 @@ def carregardados(dfbr):
     dfbr[:] = df_temp  # Substitui os dados dentro do DataFrame original
 
     dfbr["Fonte de Admissao"] = dfbr["Fonte de Admissao"].fillna("Não identificado")
-    dfbr["Hora do Check-In"] = dfbr["Hora do Check-In"].apply(
-        lambda x: dt.strptime(x, "%d/%m/%Y %I:%M:%S %p")
-    ) 
+    dfbr["Hora do Check-In"] = pd.to_datetime(dfbr["Hora do Check-In"], format="%d/%m/%Y %I:%M:%S %p", errors='coerce')
 
     dfbr["Dias da semana"] = dfbr["Check-In hora"] = dfbr["Hora do Check-In"]
     dfbr["Dias da semana"] = dfbr["Dias da semana"].apply(
-        lambda x: dt.strftime(x, "%A")
+        lambda x: dt.strftime(x, "%A") if pd.notna(x) else x
     )  # Datetime -> weekday string
 
     dfbr["Check-In hora"] = dfbr["Check-In hora"].apply(
@@ -493,20 +491,22 @@ def criatabeladefiguras(departamento, dfbrfiltrado, categoria, categoriaespectro
         "Tempo de Espera Min": "mean",
         "Pontuacao de Cuidado": "mean",
         "Dias da semana": "first",
-        "Hora do Check-In": "first",
+        "Inicio do Atendimento": "first",
         "Check-In hora": "first",
+        "Comentario": "first",
     }
     #print('\nEsta função foi chamada -> criatabeladefiguras \n')
     dfbr_por_departamento = dfbrfiltrado[dfbrfiltrado["Departamento"] == departamento].reset_index()
     agrupado = (dfbr_por_departamento.groupby("Nome").agg(aggregation).reset_index())
     listadeIdPaciente = agrupado["Nome"]
+    comentario=agrupado["Comentario"]
 
     x = agrupado[categoria]
     y = list(departamento for _ in range(len(x)))
 
     f = lambda x_val: dt.strftime(x_val, "%d/%m/%Y")
     check_in = (
-        agrupado["Hora do Check-In"].apply(f)
+        agrupado["Inicio do Atendimento"]
         + " "
         + agrupado["Dias da semana"]
         + " "
@@ -514,10 +514,10 @@ def criatabeladefiguras(departamento, dfbrfiltrado, categoria, categoriaespectro
     )
 
     text_wait_time = (
-        "Paciente nº : "
+        "Paciente : "
         + listadeIdPaciente
-        + "<br>Hora do Check-in: "
-        + check_in
+        + "<br>Comentário do usuário: "
+        + comentario
         + "<br>Tempo de espera: "
         + agrupado["Tempo de Espera Min"].round(decimals=1).map(str)
         + " Minutos,  Nota de atendimento : "
