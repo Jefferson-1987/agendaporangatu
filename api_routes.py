@@ -123,12 +123,13 @@ def reagendar_atendimento(arquivo, nome, inicio, ESF, departamento):
         return 'Este horário está ocupado'
 
 
-def notaatendimento(arquivo, nome, inicio, nota):
+def notaatendimento(arquivo, nome, inicio, nota, comentario):
     baixar_arquivo()
     df = carregar_dados(arquivo)
     df.loc[df["Nome"] == nome, "Hora do Check-In"] = inicio
     df.loc[df["Nome"] == nome, "Pontuacao de Cuidado"] = nota
     df.loc[df["Nome"] == nome, "Status do Atendimento"] = "Atendido"
+    df.loc[df["Nome"] == nome, "Comentario"] = comentario
     salvar_dados(df, arquivo)
     enviar_arquivo()
     return f"Sua nota de atendimento {nota} foi enviada com sucesso!"
@@ -154,7 +155,8 @@ def receber_json():
             resposta=cancelar_agendamento(arquivo, nome)
         elif intencao=="notaatendimento":
             nota = data.get('nota')
-            resposta=notaatendimento(arquivo, nome, inicio, nota)
+            comentario = data.get('Comentario')
+            resposta=notaatendimento(arquivo, nome, inicio, nota, comentario)
             
         return jsonify({"retorno": f"{resposta}"}), 200
 
